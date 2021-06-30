@@ -1,7 +1,11 @@
 <template>
   <div class="home">
     <h1>This is a table with some important data</h1>
-    <b-table :data="tableData" :columns="columns"></b-table>
+    <b-table
+      :data="tableData"
+      :columns="columns"
+      :row-class="_getRowClass"
+    ></b-table>
   </div>
 </template>
 
@@ -15,47 +19,53 @@ export default class Home extends Vue {
   columns = [
     {
       label: "Security class",
-      field: "name",
+      field: "name"
     },
     {
       label: "Authorized amount",
-      field: "authorizedAmount",
+      field: "authorizedAmount"
     },
     {
       label: "Issued amount",
-      field: "issuedAmount",
+      field: "issuedAmount"
     },
     {
       label: "Authorized Capital",
-      field: "authorizedCapital",
+      field: "authorizedCapital"
     },
     {
       label: "Issued capital",
-      field: "issuedCapital",
-    },
+      field: "issuedCapital"
+    }
   ];
   loading = false;
 
   // mounted works fine if your ide complains about it
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-  mounted() {
-    this.getData()
-      .then((data: TableData[]) => {
-        this.loading = true;
-        return data.map((dataItem: TableData) => {
-          return {
-            ...dataItem,
-            randomNumber: Math.random(),
-          };
-        });
-      })
-      .then((data: TableData[]) => {
-        this.tableData = data;
-        this.loading = false;
-      })
-      .catch((error) => {
-        console.log(error, "This is not good");
+  async mounted() {
+    this.loading = true;
+    try {
+      // Fetch data
+      let data = await this.getData();
+
+      // Add `randomNumber` field
+      data = data.map((dataItem: TableData) => {
+        return {
+          ...dataItem,
+          randomNumber: Math.random()
+        };
       });
+
+      // Calculate totals
+      data.push(this._getTotalRow(data));
+
+      // Assign to `tableData`
+      this.tableData = data;
+
+      this.loading = false;
+    } catch (error) {
+      console.log(error, "This is not good");
+    }
   }
 
   async getData(): Promise<TableData[]> {
@@ -67,7 +77,7 @@ export default class Home extends Vue {
         authorizedAmount: 1500,
         issuedAmount: 500,
         authorizedCapital: 7550,
-        issuedCapital: 2500,
+        issuedCapital: 2500
       },
       {
         id: "42f2462d-49d0-4e91-8fe1-de2e656b0f06",
@@ -76,7 +86,7 @@ export default class Home extends Vue {
         authorizedAmount: 15000,
         issuedAmount: 5000,
         authorizedCapital: 150000,
-        issuedCapital: 50000,
+        issuedCapital: 50000
       },
       {
         id: "fd78c11b-e3d2-455a-99b0-49907a75c463",
@@ -85,7 +95,7 @@ export default class Home extends Vue {
         authorizedAmount: 96876,
         issuedAmount: 61760,
         authorizedCapital: 96876,
-        issuedCapital: 61760,
+        issuedCapital: 61760
       },
       {
         id: "d8654cb0-8986-4fbc-b969-025e514cb934",
@@ -94,9 +104,35 @@ export default class Home extends Vue {
         authorizedAmount: 10110,
         issuedAmount: 1100,
         authorizedCapital: 10110,
-        issuedCapital: 1100,
-      },
+        issuedCapital: 1100
+      }
     ];
+  }
+
+  _getTotalRow(data: TableData[]): TableData {
+    return data?.reduce(
+      (acc, curr) => {
+        acc.authorizedAmount += curr.authorizedAmount;
+        acc.issuedAmount += curr.issuedAmount;
+        acc.authorizedCapital += curr.authorizedCapital;
+        acc.issuedCapital += curr.issuedCapital;
+
+        return acc;
+      },
+      {
+        id: "totalRow",
+        name: "Total",
+        nominalValue: 0,
+        authorizedAmount: 0,
+        issuedAmount: 0,
+        authorizedCapital: 0,
+        issuedCapital: 0
+      }
+    );
+  }
+
+  _getRowClass(row: TableData): string {
+    return row.id === "totalRow" ? "has-text-weight-bold" : "";
   }
 }
 </script>

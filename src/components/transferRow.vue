@@ -1,12 +1,16 @@
 <template>
-  <div class="transfer-row">
-    <h4>{{ transfer.fromSecurityHolder }}</h4>
-    <p>Type: {{ transfer.type }}</p>
-    <p class="transfer-row__state">State: {{ transfer.state }}</p>
-    <p>Amount: {{ transfer.amount }}</p>
-    <span v-if="transfer.forgottenProperty">{{
-      transfer.forgottenProperty
-    }}</span>
+  <div class="card transfer-row">
+    <div class="card-content">
+      <span class="box tag is-medium" v-bind:class="[classObject]">{{
+        transfer.state
+      }}</span>
+      <h4>{{ transfer.fromSecurityHolder }}</h4>
+      <p>Type: {{ transfer.type }}</p>
+      <p>Amount: {{ transfer.amount }}</p>
+      <strong v-if="transfer.forgottenProperty">{{
+        transfer.forgottenProperty
+      }}</strong>
+    </div>
   </div>
 </template>
 
@@ -16,27 +20,46 @@ import { Component, Prop } from "vue-property-decorator";
 import { Transaction } from "@/types/types";
 
 @Component({
-  name: "TransferRow",
+  name: "TransferRow"
 })
 export default class TransferRow extends Vue {
   @Prop({ required: true }) transfer!: Transaction;
+
+  // Since the project already imports Bulma.css, I used some of its classes
+
+  get classObject(): string {
+    switch (this.transfer.state) {
+      case "NEW":
+        return "is-info";
+      case "MODIFIED":
+        return "is-warning";
+      case "PUBLISHED":
+        return "is-success";
+      case "OLD":
+      default:
+        return "";
+    }
+  }
 }
 </script>
 
 <style lang="scss">
 .transfer-row {
-  border: 1px solid blue;
-  margin: 1rem;
+  margin: 1.5rem;
   max-width: 500px;
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  text-align: left;
 
-  &__state {
-    border: 1px solid hotpink;
-    width: fit-content;
-    display: block;
+  > .card-content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  /* To create look similar to provided UI designs */
+  .tag {
+    position: absolute;
+    top: 1rem;
+    right: -1rem;
   }
 }
 </style>
